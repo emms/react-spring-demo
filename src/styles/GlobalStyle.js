@@ -11,7 +11,6 @@ const GlobalStyle = createGlobalStyle`
     width: 100%;
     height: 100%;
     background-color: #f3f3f3;
-    position: relative;
   }
 `
 

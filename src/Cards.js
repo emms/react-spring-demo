@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components'
 import { useSprings, animated, interpolate } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
@@ -10,19 +10,37 @@ const Container = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  position: relative;
 `
 
 const Cards = () => {
   const cards = ['card1', 'card2', 'card3']
+  const [gone] = useState(() => new Set()) // set of all cards that have been moved off of the screen
   const [props, set] = useSprings(cards.length, i => ({
     x: i * 20,
-    from: { x: 0 }
+    scale: 1 + i * 0.05,
+    from: { x: 0, scale: 1 }
   }))
   const bind = useGesture(
-    ({ args: [index], delta: [xDelta], direction: [xDir], velocity }) => {
+    ({ args: [index], down, delta: [xDelta], direction: [xDir], velocity }) => {
+      // trigger is the amount of velocity required to fling the card off the screen
+      const trigger = velocity > 0.3
+      // if the mouse is not pressed down and velocity exceeds the trigger, the card is "gone" off the screen
+      if (!down && trigger) gone.add(index)
       set(i => {
-        if (index !== i || xDir <= 0) return
-        const x = xDelta
+        if (index !== i) return
+        const isGone = gone.has(index)
+        let x
+        if (isGone) {
+          // if the card should be "gone" off the screen, move it out of the viewport
+          x = window.innerWidth
+        } else if (down) {
+          // if mouse/touch is pressed down, keep the card where it is, otherwise return to original position in deck
+          x = xDelta
+        } else {
+          x = i * 20
+        }
         return { x }
       })
     }
@@ -31,14 +49,17 @@ const Cards = () => {
 
   return (
     <Container>
-      {props.map(({ x, ...props }, i) => {
-        console.log(props)
+      {props.map(({ x, scale }, i) => {
+        console.log(x, scale)
         return (
           <AnimatedCard
             {...bind(i)}
             key={i}
             style={{
-              transform: interpolate(x, x => `translate3d(${x}px,0,0)`)
+              transform: interpolate(
+                [x, scale],
+                (x, scale) => `translate3d(${x}px,0,0) scale(${scale})`
+              )
             }}
             index={i}
           />
