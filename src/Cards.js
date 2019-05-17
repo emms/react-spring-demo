@@ -18,7 +18,7 @@ const Cards = () => {
   const cards = ['card1', 'card2', 'card3']
   const [gone] = useState(() => new Set()) // set of all cards that have been moved off of the screen
   const [props, set] = useSprings(cards.length, i => ({
-    x: i * 20,
+    x: -(cards.length - 1 - i) * 20,
     scale: 1 + i * 0.05,
     from: { x: 0, scale: 1 }
   }))
@@ -39,7 +39,7 @@ const Cards = () => {
           // if mouse/touch is pressed down, keep the card where it is, otherwise return to original position in deck
           x = xDelta
         } else {
-          x = i * 20
+          x = -(cards.length - 1 - i) * 20
         }
         return { x }
       })
@@ -50,7 +50,6 @@ const Cards = () => {
   return (
     <Container>
       {props.map(({ x, scale }, i) => {
-        console.log(x, scale)
         return (
           <AnimatedCard
             {...bind(i)}

@@ -11,7 +11,6 @@ const StyledCard = styled.div`
 `
 
 const Card = React.forwardRef(({ index, style, ...props }, ref) => {
-  console.log(style)
   return <StyledCard ref={ref} index={index} style={style} {...props} />
 })
 
