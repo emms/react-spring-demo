@@ -29,7 +29,7 @@ const Cards = () => {
       // if the mouse is not pressed down and velocity exceeds the trigger, the card is "gone" off the screen
       if (!down && trigger) gone.add(index)
       set(i => {
-        if (index !== i) return
+        if (index !== i || xDelta <= 0) return
         const isGone = gone.has(index)
         let x
         if (isGone) {
