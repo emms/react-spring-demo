@@ -3,7 +3,7 @@ import styled from 'styled-components/macro'
 import { media } from 'styles'
 
 const StyledCard = styled.div`
-  width: 85%;
+  width: 80%;
   height: 90%;
   min-height: 500px;
   max-height: 600px;

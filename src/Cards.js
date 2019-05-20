@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import styled from 'styled-components/macro'
 import { useSprings, animated, interpolate } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
-import { isEqual } from 'lodash-es'
 import Card from 'components/Card'
 
 const Container = styled.div`
   flex: 1;
   display: flex;
   justify-content: flex-end;
-  overflow: hidden;
   position: relative;
+  perspective: 800px;
 `
 
 const Heading = styled.h1`
   margin: 0;
   padding: 30px 0 15px 0;
   text-align: right;
+  text-transform: uppercase;
 `
 
 const CardsPage = styled.div`
@@ -24,6 +24,7 @@ const CardsPage = styled.div`
   width: 100%;
   height: 100%;
   padding-right: 15px;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -32,15 +33,23 @@ const CardsPage = styled.div`
 const AnimatedCard = animated(Card)
 
 const Cards = () => {
-  const [cards, setCards] = useState(['card1', 'card2', 'card3', 'card4'])
+  const cards = [
+    { id: 0, text: 'card1' },
+    { id: 1, text: 'card2' },
+    { id: 2, text: 'card3' },
+    { id: 3, text: 'card4' }
+  ]
   const [gone] = useState(() => new Set()) // set of all cards that have been moved off of the screen
-  const offset = 20
+  // const [cardsFlicked, setCardsFlicked] = useState(0)
+  const offset = 25
+  const scaleUnit = 0.05
 
   const [props, set] = useSprings(cards.length, i => {
     return {
       x: -(cards.length - 1 - i) * offset,
-      scale: 1 - (cards.length - 1 - i) * 0.05,
-      from: { x: 0, scale: 0.9 }
+      scale: 1 - (cards.length - 1 - i) * scaleUnit,
+      z: -(cards.length - 1 - i) * 20,
+      from: { x: 0, scale: 0.9, z: -40 }
     }
   })
 
@@ -51,14 +60,11 @@ const Cards = () => {
       // if the mouse is not pressed down and velocity exceeds the trigger, the card is "gone" off the screen
       if (!down && trigger) gone.add(index)
       const isGone = gone.has(index)
-      // if (isGone) {
-      //   const lastCard = cards[cards.length - 1]
-      //   const filteredCards = cards.filter(x => !isEqual(x, lastCard))
-      //   filteredCards.unshift(lastCard)
-      //   setCards(filteredCards)
-      // }
+
       set(i => {
+        // TODO disable moving any other card than the topmost
         if (i === index) {
+          // this is the card that is being flicked
           if (xDelta <= 0) return
           let x
           if (isGone) {
@@ -68,19 +74,20 @@ const Cards = () => {
             // if mouse/touch is pressed down, keep the card where it is, otherwise return to original position in deck
             x = xDelta
           } else {
-            x = -(cards.length - 1 - i) * 20
+            x = 0
           }
           return { x }
         }
         if (isGone) {
+          // these cards are not being flicked, they are in the deck
           if (i < index) {
-            console.log('i: ', i, 'kerroin: ', index - i - 1)
             // the multiplier reflects how far the card is from the "top of the deck". So for the topmost card,
             // the multiplier is 0, 2nd card from the top it is 1, and so on
             const multiplier = index - i - 1
             return {
-              scale: 1 - multiplier * 0.05,
-              x: -multiplier * offset
+              scale: 1 - multiplier * scaleUnit,
+              x: -multiplier * offset,
+              z: -multiplier * 20
             }
           }
         }
@@ -92,20 +99,20 @@ const Cards = () => {
     <CardsPage>
       <Heading>Explore</Heading>
       <Container>
-        {props.map(({ x, scale }, i) => {
+        {props.map(({ x, z, scale }, i) => {
           return (
             <AnimatedCard
               {...bind(i)}
               key={i}
               style={{
                 transform: interpolate(
-                  [x, scale],
-                  (x, scale) => `translate3d(${x}px,0,0) scale(${scale})`
+                  [x, z, scale],
+                  (x, z, scale) => `translate3d(${x}px,0,${z}px)`
                 )
               }}
               index={i}
             >
-              {cards[i]}
+              {cards.find(x => x.id === i).text}
             </AnimatedCard>
           )
         })}
