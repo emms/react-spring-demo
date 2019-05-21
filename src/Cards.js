@@ -1,6 +1,6 @@
 import React, { useRef } from 'react'
 import styled from 'styled-components/macro'
-import { useSprings, animated, interpolate } from 'react-spring'
+import { useSprings, animated, interpolate, config } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
 import Card from 'components/Card'
 
@@ -61,7 +61,8 @@ const Cards = () => {
   const [props, set] = useSprings(cards.length, i => {
     return {
       ...getPosition(i),
-      from: { x: 0, z: -40 }
+      from: { x: 0, z: -40 },
+      config: config.stiff
     }
   })
 
@@ -69,8 +70,8 @@ const Cards = () => {
     ({ args: [index], down, delta: [xDelta], direction: [xDir], velocity }) => {
       // disable moving any other card than the topmost
       if (getIndexFromTopOfDeck(index) > 0) return
-      // trigger is the amount of velocity required to fling the card off the screen
-      const trigger = velocity > 0.3
+      // trigger is the amount of velocity or xDelta required to fling the card off the screen
+      const trigger = velocity > 0.3 || xDelta > 180
       // if the mouse is not pressed down and velocity exceeds the trigger, the card is "flicked" off the screen
       if (!down && trigger) {
         cardsFlicked.current++
