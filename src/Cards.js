@@ -61,7 +61,8 @@ const Cards = () => {
   const [props, set] = useSprings(cards.length, i => {
     return {
       ...getPosition(i),
-      from: { x: 0, z: -40 },
+      opacity: 1,
+      from: { x: 0, z: -40, opacity: 0 },
       config: config.stiff
     }
   })
@@ -70,11 +71,13 @@ const Cards = () => {
     ({ args: [index], down, delta: [xDelta], direction: [xDir], velocity }) => {
       // disable moving any other card than the topmost
       if (getIndexFromTopOfDeck(index) > 0) return
+      let cardFlicked = false
       // trigger is the amount of velocity or xDelta required to fling the card off the screen
-      const trigger = velocity > 0.3 || xDelta > 180
+      const trigger = xDelta > 180
       // if the mouse is not pressed down and velocity exceeds the trigger, the card is "flicked" off the screen
       if (!down && trigger) {
         cardsFlicked.current++
+        cardFlicked = true
       }
       set(i => {
         if (i === index) {
@@ -85,10 +88,21 @@ const Cards = () => {
           if (down) {
             return { x: xDelta, z: 0 }
           }
+          if (cardFlicked) {
+            // if the card is flicked away, it is moved out of the viewport to the right
+            // and opacity is set to 0, so that the card is not visible when it moves to the back
+            // of the deck
+            return { x: window.innerWidth, opacity: 0 }
+          }
         }
+        // when the card is the second to last, its opacity is animated back to 1
+        // this is because otherwise there is a flicker visible in the background when the
+        // card becomes visible again
+        if (getIndexFromTopOfDeck(i) === cards.length - 2)
+          return { ...getPosition(i), opacity: 1 }
         // if order changed, move the topmost card to the back and the others forward
         // otherwise keep them where they are
-        return getPosition(i)
+        return { ...getPosition(i) }
       })
     }
   )
@@ -97,12 +111,13 @@ const Cards = () => {
     <CardsPage>
       <Heading>Explore</Heading>
       <Container>
-        {props.map(({ x, z }, i) => {
+        {props.map(({ x, z, opacity }, i) => {
           return (
             <AnimatedCard
               {...bind(i)}
               key={i}
               style={{
+                opacity,
                 transform: interpolate(
                   [x, z],
                   (x, z) => `translate3d(${x}px,0,${z}px)`
