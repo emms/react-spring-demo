@@ -14,19 +14,17 @@ const StyledCard = styled.div`
   background-position: center;
 
   ${media.tabletPortraitUp`
-    width: 85%;
+    width: 90%;
     min-height: 600px;
     max-height: 800px;
   `}
 
   ${media.tabletLandscapeUp`
-    width: 90%;
     max-height: 1000px;
   `}
 
   ${media.desktopUp`
     width: 95%;
-    min-height: 800px;
     max-height: 1200px;
   `}
 `

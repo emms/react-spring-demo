@@ -80,7 +80,8 @@ const Cards = () => {
   const [props, set] = useSprings(cards.length, i => {
     return {
       ...getPosition(i),
-      from: { x: 0, z: -40 },
+      scale: 1,
+      from: { x: 0, z: -60, scale: 1 },
       config: config.default
     }
   })
@@ -129,7 +130,7 @@ const Cards = () => {
     <CardsPage>
       <Heading>Browse</Heading>
       <Container>
-        {props.map(({ x, z, opacity }, i) => {
+        {props.map(({ x, z, scale, opacity }, i) => {
           return (
             <AnimatedCard
               {...bind(i)}
@@ -137,12 +138,14 @@ const Cards = () => {
               style={{
                 opacity,
                 transform: interpolate(
-                  [x, z],
-                  (x, z) => `translate3d(${x}px,0,${z}px)`
+                  [x, z, scale],
+                  (x, z, scale) =>
+                    `translate3d(${x}px,0,${z}px) scale(${scale})`
                 ),
                 backgroundImage: `url(${cards.find(x => x.id === i).image})`
               }}
               index={i}
+              onClick={() => set({ scale: 1.5 })}
             />
           )
         })}
