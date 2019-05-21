@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useRef } from 'react'
 import styled from 'styled-components/macro'
 import { useSprings, animated, interpolate } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
@@ -10,6 +10,7 @@ const Container = styled.div`
   justify-content: flex-end;
   position: relative;
   perspective: 800px;
+  transform-style: preserve-3d;
 `
 
 const Heading = styled.h1`
@@ -37,60 +38,56 @@ const Cards = () => {
     { id: 0, text: 'card1' },
     { id: 1, text: 'card2' },
     { id: 2, text: 'card3' },
-    { id: 3, text: 'card4' }
+    { id: 3, text: 'card4' },
+    { id: 4, text: 'card5' },
+    { id: 5, text: 'card6' },
+    { id: 6, text: 'card7' },
+    { id: 7, text: 'card8' }
   ]
-  const [gone] = useState(() => new Set()) // set of all cards that have been moved off of the screen
-  // const [cardsFlicked, setCardsFlicked] = useState(0)
-  const offset = 25
-  const scaleUnit = 0.05
+  const cardsFlicked = useRef(0)
+
+  const getIndexFromTopOfDeck = i =>
+    cards.length - 1 - ((i + cardsFlicked.current) % cards.length)
+
+  const getPosition = i => {
+    const offsetX = 25
+    const offsetZ = 20
+    return {
+      x: -getIndexFromTopOfDeck(i) * offsetX,
+      z: -getIndexFromTopOfDeck(i) * offsetZ
+    }
+  }
 
   const [props, set] = useSprings(cards.length, i => {
     return {
-      x: -(cards.length - 1 - i) * offset,
-      scale: 1 - (cards.length - 1 - i) * scaleUnit,
-      z: -(cards.length - 1 - i) * 20,
-      from: { x: 0, scale: 0.9, z: -40 }
+      ...getPosition(i),
+      from: { x: 0, z: -40 }
     }
   })
 
   const bind = useGesture(
     ({ args: [index], down, delta: [xDelta], direction: [xDir], velocity }) => {
+      // disable moving any other card than the topmost
+      if (getIndexFromTopOfDeck(index) > 0) return
       // trigger is the amount of velocity required to fling the card off the screen
       const trigger = velocity > 0.3
-      // if the mouse is not pressed down and velocity exceeds the trigger, the card is "gone" off the screen
-      if (!down && trigger) gone.add(index)
-      const isGone = gone.has(index)
-
+      // if the mouse is not pressed down and velocity exceeds the trigger, the card is "flicked" off the screen
+      if (!down && trigger) {
+        cardsFlicked.current++
+      }
       set(i => {
-        // TODO disable moving any other card than the topmost
         if (i === index) {
           // this is the card that is being flicked
+          // do nothing if the card was moved left
           if (xDelta <= 0) return
-          let x
-          if (isGone) {
-            // if the card should be "gone" off the screen, move it out of the viewport
-            x = window.innerWidth
-          } else if (down) {
-            // if mouse/touch is pressed down, keep the card where it is, otherwise return to original position in deck
-            x = xDelta
-          } else {
-            x = 0
-          }
-          return { x }
-        }
-        if (isGone) {
-          // these cards are not being flicked, they are in the deck
-          if (i < index) {
-            // the multiplier reflects how far the card is from the "top of the deck". So for the topmost card,
-            // the multiplier is 0, 2nd card from the top it is 1, and so on
-            const multiplier = index - i - 1
-            return {
-              scale: 1 - multiplier * scaleUnit,
-              x: -multiplier * offset,
-              z: -multiplier * 20
-            }
+          // if mouse/touch is pressed down, keep the card where it is held
+          if (down) {
+            return { x: xDelta, z: 0 }
           }
         }
+        // if order changed, move the topmost card to the back and the others forward
+        // otherwise keep them where they are
+        return getPosition(i)
       })
     }
   )
@@ -99,15 +96,15 @@ const Cards = () => {
     <CardsPage>
       <Heading>Explore</Heading>
       <Container>
-        {props.map(({ x, z, scale }, i) => {
+        {props.map(({ x, z }, i) => {
           return (
             <AnimatedCard
               {...bind(i)}
               key={i}
               style={{
                 transform: interpolate(
-                  [x, z, scale],
-                  (x, z, scale) => `translate3d(${x}px,0,${z}px)`
+                  [x, z],
+                  (x, z) => `translate3d(${x}px,0,${z}px)`
                 )
               }}
               index={i}
