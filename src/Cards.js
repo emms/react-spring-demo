@@ -3,6 +3,7 @@ import styled from 'styled-components/macro'
 import { useSprings, animated, interpolate, config } from 'react-spring'
 import { useGesture } from 'react-use-gesture'
 import Card from 'components/Card'
+import { sizes } from 'styles'
 
 const Container = styled.div`
   flex: 1;
@@ -50,7 +51,7 @@ const Cards = () => {
     cards.length - 1 - ((i + cardsFlicked.current) % cards.length)
 
   const getPosition = i => {
-    const offsetX = 25
+    const offsetX = window.innerWidth > sizes.desktopUp ? 35 : 25
     const offsetZ = 20
     return {
       x: -getIndexFromTopOfDeck(i) * offsetX,
@@ -62,8 +63,8 @@ const Cards = () => {
     return {
       ...getPosition(i),
       opacity: 1,
-      from: { x: 0, z: -40, opacity: 0 },
-      config: config.stiff
+      from: { x: 0, z: -40 },
+      config: config.default
     }
   })
 
@@ -73,7 +74,7 @@ const Cards = () => {
       if (getIndexFromTopOfDeck(index) > 0) return
       let cardFlicked = false
       // trigger is the amount of velocity or xDelta required to fling the card off the screen
-      const trigger = xDelta > 180
+      const trigger = velocity > 0.3 || xDelta > 180
       // if the mouse is not pressed down and velocity exceeds the trigger, the card is "flicked" off the screen
       if (!down && trigger) {
         cardsFlicked.current++
