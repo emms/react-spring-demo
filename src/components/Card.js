@@ -9,8 +9,9 @@ const StyledCard = styled.div`
   max-height: 600px;
   border-radius: 5px;
   background-color: #fff;
-  box-shadow: -5px 5px 10px #e5e5e5;
   position: absolute;
+  background-size: cover;
+  background-position: center;
 
   ${media.tabletPortraitUp`
     width: 85%;
