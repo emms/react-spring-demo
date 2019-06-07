@@ -29,8 +29,12 @@ const StyledCard = styled.div`
   `}
 `
 
-const Card = React.forwardRef(({ index, style, ...props }, ref) => {
-  return <StyledCard ref={ref} index={index} style={style} {...props} />
+const Card = React.forwardRef(({ index, style, children, ...props }, ref) => {
+  return (
+    <StyledCard ref={ref} index={index} style={style} {...props}>
+      {children}
+    </StyledCard>
+  )
 })
 
 export default Card

@@ -6,6 +6,7 @@
     "lodash-es": "^4.17.11",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-router-dom": "^5.0.0",
     "react-spring": "^8.0.20",
     "react-use-gesture": "^5.0.1",
     "styled-components": "^4.2.0"
