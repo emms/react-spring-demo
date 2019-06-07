@@ -30,7 +30,7 @@ const CardPageContainer = styled(animated.div)`
 const RouteAnimator = withRouter(({ location }) => {
   const transitions = useTransition(location, location => location.pathname, {
     from: { transform: 'scale(1)' },
-    enter: { transform: 'scale(1.3)' },
+    enter: { transform: 'scale(1.5)' },
     leave: { transform: 'scale(1)' }
   })
 
